@@ -1,7 +1,7 @@
 {
   "configurations": [
     {
-      "name": "Debug",
+      "name": "Run Agent",
       "type": "cppdbg",
       "request": "launch",
       "program": "${command:cmake.launchTargetPath}",
@@ -20,12 +20,44 @@
           "description": "Set Disassembly Flavor to Intel",
           "text": "-gdb-set disassembly-flavor intel",
           "ignoreFailures": true
+        },
+        {
+          "description": "Ignore SIGPIPE breaks",
+          "text": "handle SIGPIPE noprint nostop pass",
+          "ignoreFailures": true
         }
       ],
       "preLaunchTask": "CMake: build",
       "windows": {
-        "type": "cppvsdbg"
-      } 
+        "type": "cppvsdbg",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          },
+          {
+            "description": "Set Disassembly Flavor to Intel",
+            "text": "-gdb-set disassembly-flavor intel",
+            "ignoreFailures": true
+          }
+        ],
+      },
+    },
+    {
+      "name": "Run Server",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "nc -lkU /tmp/monitor.sock",
+      "windows": {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"while(`$true) { `$p = New-Object System.IO.Pipes.NamedPipeServerStream('monitor'); `$p.WaitForConnection(); `$r = New-Object System.IO.StreamReader(`$p); while(`$l = `$r.ReadLine()) { Write-Host `$l }; `$p.Dispose() }\""
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Monitor Stack",
+      "configurations": ["Run Server", "Run Agent"]
     }
   ]
 }
